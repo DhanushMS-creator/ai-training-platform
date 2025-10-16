@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { registerTrainee, TraineeRegistration } from "../../services/api";
 import "./RegistrationForm.css";
 
+// Avatar image - same as video page
+const AVATAR_IMAGE_URL = "/avatar.jpg";
+
 interface RegistrationFormProps {
 	onRegistrationComplete?: (sessionId: number) => void;
 }
@@ -60,18 +63,14 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
 
 	return (
 		<div className='registration-container'>
-			<div className='registration-card'>
-				{/* Laura Avatar at the top */}
-				<div className='avatar-container'>
-					<img
-						src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=400&fit=crop'
-						alt='Laura - Your Training Expert'
-						className='avatar-image'
-					/>
-				</div>
+			{/* Small Laura Avatar - Top Middle */}
+			<div className='small-avatar-container'>
+				<img src={AVATAR_IMAGE_URL} alt='Laura' className='small-avatar' />
+			</div>
 
+			<div className='registration-card'>
 				<h1>Welcome to AI Training Platform</h1>
-				<p className='subtitle'>Meet Laura, your training expert</p>
+				<p className='subtitle'>Enter your info to continue</p>
 
 				{error && <div className='error-message'>{error}</div>}
 

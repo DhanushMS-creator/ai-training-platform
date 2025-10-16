@@ -19,7 +19,7 @@ const VideoPlayer: React.FC = () => {
 
 	// Local video file
 	const videoSrc = "/training-video.mp4";
-	const videoTitle = "Business Case Development Training";
+	const videoTitle = "Business Case Development Training Video";
 
 	// Load voices once
 	useEffect(() => {
@@ -234,19 +234,12 @@ const VideoPlayer: React.FC = () => {
 				)}
 			</div>
 
-			<div className='video-wrapper'>
-				<div className='video-header'>
-					<h1>{videoTitle}</h1>
-					<div className='progress-indicator'>
-						<div className='step completed'>✓ Registration</div>
-						<div className='step completed'>✓ Greeting</div>
-						<div className='step active'>▶ Training Video</div>
-						<div className='step'>Assessment</div>
-						<div className='step'>Results</div>
-					</div>
-				</div>
+		<div className='video-wrapper'>
+			<div className='video-header'>
+				<h1>{videoTitle}</h1>
+			</div>
 
-				<div className='video-player-card'>
+			<div className='video-player-card'>
 					{/* HTML5 Video Player */}
 					<div className='video-embed'>
 						<video

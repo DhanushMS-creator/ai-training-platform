@@ -31,7 +31,7 @@ def generate_questions(request, session_id):
             )
         
         pdf_file = request.FILES['pdf_file']
-        num_questions = int(request.data.get('num_questions', 10))
+        num_questions = int(request.data.get('num_questions', 5))  # Default to 5 questions
         
         # Save PDF temporarily
         file_path = default_storage.save(f'temp/{pdf_file.name}', pdf_file)
@@ -105,7 +105,7 @@ def auto_generate_questions(request, session_id):
                 'questions_count': existing_questions
             }, status=status.HTTP_200_OK)
         
-        num_questions = int(request.data.get('num_questions', 10))
+        num_questions = int(request.data.get('num_questions', 5))  # Default to 5 questions
         
         # Use the stored PDF file
         pdf_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'training_material.pdf')
@@ -207,8 +207,17 @@ def submit_answer(request, session_id):
             }
         )
         
-        serializer = MCQAnswerSerializer(answer)
-        return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        # Include correct answer in response for real-time feedback
+        response_data = {
+            'id': answer.id,
+            'question': answer.question.id,
+            'selected_answer': answer.selected_answer,
+            'is_correct': answer.is_correct,
+            'correct_answer': question.correct_answer,  # Include correct answer
+            'answered_at': answer.answered_at
+        }
+        
+        return Response(response_data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
     
     except (TrainingSession.DoesNotExist, MCQQuestion.DoesNotExist) as e:
         return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)

@@ -1,6 +1,6 @@
 /** @format */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { updateSession, updateSessionStatus } from "../../services/api";
 import "./VideoPlayer.css";
@@ -8,24 +8,17 @@ import "./VideoPlayer.css";
 // Avatar image - local image
 const AVATAR_IMAGE_URL = "/avatar.jpg";
 
-// YouTube IFrame API types
-declare global {
-	interface Window {
-		YT: any;
-		onYouTubeIframeAPIReady: () => void;
-	}
-}
-
 const VideoPlayer: React.FC = () => {
 	const navigate = useNavigate();
 	const { sessionId } = useParams<{ sessionId: string }>();
 	const [videoCompleted, setVideoCompleted] = useState(false);
 	const [speaking, setSpeaking] = useState(false);
-	const [player, setPlayer] = useState<any>(null);
+	const videoRef = useRef<HTMLVideoElement>(null);
 	const [voicesLoaded, setVoicesLoaded] = useState(false);
+	const [preVideoSpeechDone, setPreVideoSpeechDone] = useState(false);
 
-	// YouTube video ID extracted from: https://www.youtube.com/watch?v=ZK-rNEhJIDs
-	const videoId = "ZK-rNEhJIDs";
+	// Local video file
+	const videoSrc = "/training-video.mp4";
 	const videoTitle = "Business Case Development Training";
 
 	// Load voices once
@@ -49,41 +42,73 @@ const VideoPlayer: React.FC = () => {
 			updateSessionStatus(parseInt(sessionId), "video");
 		}
 
-		// Load YouTube IFrame API
-		const tag = document.createElement("script");
-		tag.src = "https://www.youtube.com/iframe_api";
-		const firstScriptTag = document.getElementsByTagName("script")[0];
-		firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-		// Create player when API is ready
-		window.onYouTubeIframeAPIReady = () => {
-			const ytPlayer = new window.YT.Player("youtube-player", {
-				videoId: videoId,
-				playerVars: {
-					autoplay: 1, // Autoplay the video
-					rel: 0,
-					modestbranding: 1,
-				},
-				events: {
-					onStateChange: onPlayerStateChange,
-				},
-			});
-			setPlayer(ytPlayer);
-		};
-
 		return () => {
-			// Cleanup
-			if (player) {
-				player.destroy();
-			}
+			// Cleanup speech synthesis
+			window.speechSynthesis.cancel();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionId]);
 
-	const onPlayerStateChange = (event: any) => {
-		// YT.PlayerState.ENDED = 0
-		if (event.data === 0) {
-			handleVideoEnd();
+	// Speak pre-video message when voices are loaded
+	useEffect(() => {
+		if (voicesLoaded && !preVideoSpeechDone) {
+			speakPreVideoMessage();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [voicesLoaded, preVideoSpeechDone]);
+
+	const speakPreVideoMessage = () => {
+		if (!("speechSynthesis" in window)) {
+			setPreVideoSpeechDone(true);
+			startVideo();
+			return;
+		}
+
+		window.speechSynthesis.cancel();
+		setSpeaking(true);
+
+		const messageText =
+			"So we are going through the training video, enjoy it. After the video we will be heading to MCQ.";
+
+		const utterance = new SpeechSynthesisUtterance(messageText);
+		utterance.rate = 0.9;
+		utterance.pitch = 1.0;
+		utterance.volume = 1.0;
+
+		const voices = window.speechSynthesis.getVoices();
+		const preferredVoice = voices.find(
+			(voice) =>
+				(voice.lang === "en-US" && voice.name.includes("Female")) ||
+				voice.name.includes("Samantha") ||
+				voice.name.includes("Zira") ||
+				voice.name.includes("Google US English Female") ||
+				(voice.lang === "en-US" && voice.name.toLowerCase().includes("female"))
+		);
+		if (preferredVoice) {
+			utterance.voice = preferredVoice;
+		}
+
+		utterance.onend = () => {
+			setSpeaking(false);
+			setPreVideoSpeechDone(true);
+			// Start video after speech ends
+			startVideo();
+		};
+
+		utterance.onerror = () => {
+			setSpeaking(false);
+			setPreVideoSpeechDone(true);
+			startVideo();
+		};
+
+		window.speechSynthesis.speak(utterance);
+	};
+
+	const startVideo = () => {
+		// Start playing the video
+		if (videoRef.current) {
+			videoRef.current.play().catch((error) => {
+				console.error("Error playing video:", error);
+			});
 		}
 	};
 
@@ -122,7 +147,7 @@ const VideoPlayer: React.FC = () => {
 		setSpeaking(true);
 
 		const messageText =
-			"I hope you understood the video. Now we are gonna take a mock MCQ on it. All the best!";
+			"Now that you're done watching the video, you will be taken for mock MCQ.";
 
 		const utterance = new SpeechSynthesisUtterance(messageText);
 
@@ -194,6 +219,21 @@ const VideoPlayer: React.FC = () => {
 
 	return (
 		<div className='video-container'>
+			{/* Small Laura Avatar - Top Middle */}
+			<div className='small-avatar-container'>
+				<img
+					src={AVATAR_IMAGE_URL}
+					alt='Laura'
+					className={`small-avatar ${speaking ? "speaking" : ""}`}
+				/>
+				{speaking && (
+					<div className='speaking-indicator-small'>
+						<div className='pulse'></div>
+						<span>Laura is speaking...</span>
+					</div>
+				)}
+			</div>
+
 			<div className='video-wrapper'>
 				<div className='video-header'>
 					<h1>{videoTitle}</h1>
@@ -207,64 +247,29 @@ const VideoPlayer: React.FC = () => {
 				</div>
 
 				<div className='video-player-card'>
-					{/* YouTube Player using IFrame API */}
+					{/* HTML5 Video Player */}
 					<div className='video-embed'>
-						<div id='youtube-player'></div>
+						<video
+							ref={videoRef}
+							src={videoSrc}
+							controls
+							controlsList='nodownload'
+							onEnded={handleVideoEnd}
+							style={{ width: "100%", height: "auto" }}>
+							Your browser does not support the video tag.
+						</video>
 					</div>
 
 					{/* Instructions */}
-					{!videoCompleted && (
+					{!videoCompleted && !preVideoSpeechDone && (
 						<div className='video-instructions'>
 							<div className='instruction-box'>
-								<span className='icon'>📺</span>
-								<p>
-									Please watch the training video. The assessment will begin
-									automatically after completion.
-								</p>
+								<span className='icon'>🎙️</span>
+								<p>Laura is introducing the training video...</p>
 							</div>
-						</div>
-					)}
-
-					{/* Post-Video Message */}
-					{videoCompleted && (
-						<div className='post-video-message'>
-							<div className='avatar-message-box'>
-								<div className='avatar-icon-small'>
-									<img
-										src={AVATAR_IMAGE_URL}
-										alt='Avatar'
-										className={speaking ? "speaking" : ""}
-									/>
-								</div>
-								<div className='message-content'>
-									{speaking && (
-										<div className='speaking-indicator-inline'>
-											<span>🎤 Speaking...</span>
-										</div>
-									)}
-								</div>
-							</div>
-
-							{speaking && (
-								<div className='auto-navigate-info'>
-									<p>📝 Preparing your assessment...</p>
-								</div>
-							)}
 						</div>
 					)}
 				</div>
-
-				{/* Manual Skip Button (for testing/backup) */}
-				{!videoCompleted && (
-					<div className='manual-continue'>
-						<button className='skip-button' onClick={navigateToMCQ}>
-							Skip to Assessment
-						</button>
-						<p className='skip-note'>
-							Already watched the video? Click above to proceed directly.
-						</p>
-					</div>
-				)}
 			</div>
 		</div>
 	);

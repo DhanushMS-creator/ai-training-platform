@@ -79,7 +79,7 @@ const AvatarGreeting: React.FC = () => {
 
 		setSpeaking(true);
 
-		const greetingText = `Hello ${name}, welcome to the training! I'm your training assistant. Today, you'll watch a comprehensive training video on Business Case Development, then complete a personalized assessment. Let's get started!`;
+		const greetingText = `Hello ${name}, welcome to the training! I'm Laura, your training assistant. Today, you'll watch a comprehensive training video on Business Case Development, then complete a personalized assessment. Let's get started!`;
 
 		const utterance = new SpeechSynthesisUtterance(greetingText);
 
@@ -178,7 +178,7 @@ const AvatarGreeting: React.FC = () => {
 
 				{speaking && (
 					<div className='auto-navigate-info'>
-						<p>🎤 Your training assistant is speaking...</p>
+						<p>🎤 Laura is speaking...</p>
 					</div>
 				)}
 			</div>

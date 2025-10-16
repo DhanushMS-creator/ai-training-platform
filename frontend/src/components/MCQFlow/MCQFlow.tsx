@@ -13,6 +13,9 @@ import {
 import Question from "./Question";
 import "./MCQFlow.css";
 
+// Avatar image - local image
+const AVATAR_IMAGE_URL = "/avatar.jpg";
+
 const MCQFlow: React.FC = () => {
 	const navigate = useNavigate();
 	const { sessionId } = useParams<{ sessionId: string }>();
@@ -26,10 +29,41 @@ const MCQFlow: React.FC = () => {
 	const [submitting, setSubmitting] = useState(false);
 	const [error, setError] = useState("");
 	const [results, setResults] = useState<ExamResults | null>(null);
-	const [showResults, setShowResults] = useState(false);
+
+	// New states for real-time feedback
+	const [showFeedback, setShowFeedback] = useState(false);
+	const [isCorrect, setIsCorrect] = useState(false);
+	const [correctAnswer, setCorrectAnswer] = useState("");
+	const [autoAdvancing, setAutoAdvancing] = useState(false);
+
+	// States for Laura feedback
+	const [showLauraFeedback, setShowLauraFeedback] = useState(false);
+	const [speaking, setSpeaking] = useState(false);
+	const [voicesLoaded, setVoicesLoaded] = useState(false);
+
+	// Flag to prevent duplicate question generation
+	const [questionsLoaded, setQuestionsLoaded] = useState(false);
+
+	// Load voices
+	useEffect(() => {
+		const loadVoices = () => {
+			const voices = window.speechSynthesis.getVoices();
+			if (voices.length > 0) {
+				setVoicesLoaded(true);
+			}
+		};
+
+		loadVoices();
+		if (window.speechSynthesis.onvoiceschanged !== undefined) {
+			window.speechSynthesis.onvoiceschanged = loadVoices;
+		}
+	}, []);
 
 	useEffect(() => {
-		loadQuestions();
+		if (!questionsLoaded) {
+			loadQuestions();
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [sessionId]);
 
 	const loadQuestions = async () => {
@@ -44,9 +78,10 @@ const MCQFlow: React.FC = () => {
 				try {
 					const generateData = await autoGenerateQuestions(
 						parseInt(sessionId),
-						10
+						5 // Generate only 5 questions
 					);
 					setQuestions(generateData.questions);
+					setQuestionsLoaded(true); // Mark as loaded
 					setLoading(false);
 					return;
 				} catch (genErr: any) {
@@ -60,6 +95,7 @@ const MCQFlow: React.FC = () => {
 			}
 
 			setQuestions(data.questions);
+			setQuestionsLoaded(true); // Mark as loaded
 			setLoading(false);
 		} catch (err: any) {
 			console.error("Error loading questions:", err);
@@ -84,47 +120,54 @@ const MCQFlow: React.FC = () => {
 			return;
 		}
 
-		// Submit answer to backend
+		// Submit answer to backend and get correctness
 		try {
 			if (sessionId) {
-				await submitAnswer(
+				const response = await submitAnswer(
 					parseInt(sessionId),
 					currentQuestion.id,
 					selectedAnswer
 				);
+
+				// Show feedback with correct answer
+				setIsCorrect(response.is_correct);
+				setCorrectAnswer(response.correct_answer || "");
+				setShowFeedback(true);
+				setAutoAdvancing(true);
+
+				// Auto-advance after 5 seconds
+				setTimeout(() => {
+					setShowFeedback(false);
+					setAutoAdvancing(false);
+					setCorrectAnswer("");
+
+					// Move to next question or finish
+					if (currentQuestionIndex < questions.length - 1) {
+						setCurrentQuestionIndex(currentQuestionIndex + 1);
+					} else {
+						// Last question - submit exam
+						handleSubmitExam();
+					}
+				}, 5000);
 			}
 		} catch (err) {
 			console.error("Error submitting answer:", err);
-		}
-
-		// Move to next question
-		if (currentQuestionIndex < questions.length - 1) {
-			setCurrentQuestionIndex(currentQuestionIndex + 1);
-		}
-	};
-
-	const handlePrevious = () => {
-		if (currentQuestionIndex > 0) {
-			setCurrentQuestionIndex(currentQuestionIndex - 1);
+			// Continue anyway
+			if (currentQuestionIndex < questions.length - 1) {
+				setCurrentQuestionIndex(currentQuestionIndex + 1);
+			}
 		}
 	};
 
 	const handleSubmitExam = async () => {
-		// Check if all questions are answered
-		const unansweredQuestions = questions.filter((q) => !selectedAnswers[q.id]);
-		if (unansweredQuestions.length > 0) {
-			const confirmSubmit = window.confirm(
-				`You have ${unansweredQuestions.length} unanswered question(s). Are you sure you want to submit?`
-			);
-			if (!confirmSubmit) return;
-		}
-
 		setSubmitting(true);
 		try {
 			if (sessionId) {
 				const examResults = await submitExam(parseInt(sessionId));
 				setResults(examResults);
-				setShowResults(true);
+				// Show Laura feedback instead of results page
+				setShowLauraFeedback(true);
+				speakFeedback(examResults.feedback);
 			}
 		} catch (err: any) {
 			console.error("Error submitting exam:", err);
@@ -132,6 +175,60 @@ const MCQFlow: React.FC = () => {
 		} finally {
 			setSubmitting(false);
 		}
+	};
+
+	const speakFeedback = (feedbackText: string) => {
+		if (!("speechSynthesis" in window)) {
+			console.error("Speech synthesis not supported");
+			setTimeout(() => {
+				navigate("/");
+			}, 3000);
+			return;
+		}
+
+		// Wait for voices if not loaded yet
+		if (!voicesLoaded) {
+			setTimeout(() => speakFeedback(feedbackText), 100);
+			return;
+		}
+
+		window.speechSynthesis.cancel();
+		setSpeaking(true);
+
+		const utterance = new SpeechSynthesisUtterance(feedbackText);
+		utterance.rate = 0.9;
+		utterance.pitch = 1.0;
+		utterance.volume = 1.0;
+
+		const voices = window.speechSynthesis.getVoices();
+		const preferredVoice = voices.find(
+			(voice) =>
+				(voice.lang === "en-US" && voice.name.includes("Female")) ||
+				voice.name.includes("Samantha") ||
+				voice.name.includes("Zira") ||
+				voice.name.includes("Google US English Female") ||
+				(voice.lang === "en-US" && voice.name.toLowerCase().includes("female"))
+		);
+		if (preferredVoice) {
+			utterance.voice = preferredVoice;
+		}
+
+		utterance.onend = () => {
+			setSpeaking(false);
+			// Auto-navigate to home after feedback
+			setTimeout(() => {
+				navigate("/");
+			}, 2000);
+		};
+
+		utterance.onerror = () => {
+			setSpeaking(false);
+			setTimeout(() => {
+				navigate("/");
+			}, 2000);
+		};
+
+		window.speechSynthesis.speak(utterance);
 	};
 
 	if (loading) {
@@ -159,100 +256,38 @@ const MCQFlow: React.FC = () => {
 		);
 	}
 
-	if (showResults && results) {
+	// Show Laura's Feedback (replaces old results page)
+	if (showLauraFeedback && results) {
 		return (
-			<div className='mcq-container'>
-				<div className='results-card'>
-					<div className='results-header'>
-						<div className='score-circle'>
-							<div className='score-text'>
-								<span className='score-number'>{results.score}</span>
-								<span className='score-divider'>/</span>
-								<span className='score-total'>{results.total}</span>
-							</div>
-							<div className='percentage'>{results.percentage.toFixed(0)}%</div>
+			<div className='mcq-container laura-feedback-container'>
+				<div className='laura-feedback-wrapper'>
+					<div className='laura-avatar-large'>
+						<img
+							src={AVATAR_IMAGE_URL}
+							alt='Laura'
+							className={speaking ? "speaking" : ""}
+						/>
+					</div>
+					{speaking && (
+						<div className='speaking-indicator-large'>
+							<div className='pulse'></div>
+							<span>Laura is providing feedback...</span>
 						</div>
-						<h2>Assessment Complete!</h2>
-						<p className='score-message'>
-							{results.percentage >= 80
-								? "🎉 Excellent Work!"
-								: results.percentage >= 60
-								? "👍 Good Job!"
-								: "💪 Keep Learning!"}
+					)}
+					{!speaking && (
+						<div className='feedback-complete'>
+							<p>✓ Feedback complete</p>
+							<p className='redirect-message'>Redirecting to home...</p>
+						</div>
+					)}
+					<div className='score-summary'>
+						<div className='score-circle-small'>
+							<span className='score'>{results.score}/5</span>
+						</div>
+						<p className='percentage'>
+							{Math.round((results.score / 5) * 100)}% Correct
 						</p>
 					</div>
-
-					<div className='feedback-section'>
-						<h3>Personalized Feedback</h3>
-						<div className='feedback-content'>
-							<p>{results.feedback}</p>
-						</div>
-					</div>
-
-					<div className='questions-review'>
-						<h3>Questions Review</h3>
-						{results.questions_review.map((question, index) => (
-							<div key={question.id} className='review-question'>
-								<div className='question-header'>
-									<span className='question-number'>Question {index + 1}</span>
-									<span
-										className={`answer-badge ${
-											selectedAnswers[question.id] === question.correct_answer
-												? "correct"
-												: "incorrect"
-										}`}>
-										{selectedAnswers[question.id] === question.correct_answer
-											? "✓ Correct"
-											: "✗ Incorrect"}
-									</span>
-								</div>
-								<p className='question-text'>{question.question_text}</p>
-								<div className='answer-options'>
-									<div
-										className={`option ${
-											question.correct_answer === "A" ? "correct-answer" : ""
-										} ${
-											selectedAnswers[question.id] === "A" ? "selected" : ""
-										}`}>
-										A) {question.option_a}
-									</div>
-									<div
-										className={`option ${
-											question.correct_answer === "B" ? "correct-answer" : ""
-										} ${
-											selectedAnswers[question.id] === "B" ? "selected" : ""
-										}`}>
-										B) {question.option_b}
-									</div>
-									<div
-										className={`option ${
-											question.correct_answer === "C" ? "correct-answer" : ""
-										} ${
-											selectedAnswers[question.id] === "C" ? "selected" : ""
-										}`}>
-										C) {question.option_c}
-									</div>
-									<div
-										className={`option ${
-											question.correct_answer === "D" ? "correct-answer" : ""
-										} ${
-											selectedAnswers[question.id] === "D" ? "selected" : ""
-										}`}>
-										D) {question.option_d}
-									</div>
-								</div>
-								{question.explanation && (
-									<div className='explanation'>
-										<strong>Explanation:</strong> {question.explanation}
-									</div>
-								)}
-							</div>
-						))}
-					</div>
-
-					<button className='finish-button' onClick={() => navigate("/")}>
-						Return to Home
-					</button>
 				</div>
 			</div>
 		);
@@ -263,6 +298,12 @@ const MCQFlow: React.FC = () => {
 
 	return (
 		<div className='mcq-container'>
+			{/* Small Laura Avatar - Top Middle */}
+			<div className='small-avatar-container'>
+				<img src={AVATAR_IMAGE_URL} alt='Laura' className='small-avatar' />
+				<span className='avatar-label'>Laura</span>
+			</div>
+
 			<div className='mcq-wrapper'>
 				<div className='mcq-header'>
 					<h1>Assessment</h1>
@@ -283,46 +324,47 @@ const MCQFlow: React.FC = () => {
 						onAnswerSelect={(answer) =>
 							handleAnswerSelect(currentQuestion.id, answer)
 						}
+						showFeedback={showFeedback}
+						isCorrect={isCorrect}
+						correctAnswer={correctAnswer}
 					/>
+
+					{/* Real-time Feedback Display */}
+					{showFeedback && (
+						<div
+							className={`feedback-banner ${
+								isCorrect ? "correct" : "incorrect"
+							}`}>
+							<div className='feedback-icon'>{isCorrect ? "✓" : "✗"}</div>
+							<div className='feedback-text'>
+								<strong>{isCorrect ? "Correct!" : "Incorrect"}</strong>
+								<p>
+									{isCorrect ? "Well done!" : "Better luck with the next one"}
+								</p>
+							</div>
+							{autoAdvancing && (
+								<div className='auto-advance-timer'>
+									<span>Next question in 5s...</span>
+								</div>
+							)}
+						</div>
+					)}
 
 					<div className='navigation-buttons'>
 						<button
-							className='nav-button prev'
-							onClick={handlePrevious}
-							disabled={currentQuestionIndex === 0}>
-							← Previous
+							className='nav-button next'
+							onClick={handleNext}
+							disabled={
+								!selectedAnswers[currentQuestion.id] ||
+								showFeedback ||
+								submitting
+							}>
+							{submitting
+								? "Submitting..."
+								: currentQuestionIndex < questions.length - 1
+								? "Next →"
+								: "Finish"}
 						</button>
-
-						{currentQuestionIndex < questions.length - 1 ? (
-							<button className='nav-button next' onClick={handleNext}>
-								Next →
-							</button>
-						) : (
-							<button
-								className='nav-button submit'
-								onClick={handleSubmitExam}
-								disabled={submitting}>
-								{submitting ? "Submitting..." : "Submit Exam"}
-							</button>
-						)}
-					</div>
-
-					{/* Question Navigator */}
-					<div className='question-navigator'>
-						<p>Jump to question:</p>
-						<div className='question-dots'>
-							{questions.map((q, index) => (
-								<button
-									key={q.id}
-									className={`dot ${
-										index === currentQuestionIndex ? "active" : ""
-									} ${selectedAnswers[q.id] ? "answered" : ""}`}
-									onClick={() => setCurrentQuestionIndex(index)}
-									title={`Question ${index + 1}`}>
-									{index + 1}
-								</button>
-							))}
-						</div>
 					</div>
 				</div>
 			</div>

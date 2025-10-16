@@ -79,11 +79,9 @@ const AvatarGreeting: React.FC = () => {
 
 		setSpeaking(true);
 
-		const greetingText = `Hello ${name}, welcome to the training! I'm Laura, your training assistant. Today, you'll watch a comprehensive training video on Business Case Development, then complete a personalized assessment. Let's get started!`;
+		const greetingText = `Hello ${name}, welcome to the training! I'm Laura, your training expert. Today, you'll watch a comprehensive training video on Business Case Development, then complete a personalized assessment. Let's get started!`;
 
-		const utterance = new SpeechSynthesisUtterance(greetingText);
-
-		// Configure voice settings
+		const utterance = new SpeechSynthesisUtterance(greetingText); // Configure voice settings
 		utterance.rate = 0.9; // Slightly slower for clarity
 		utterance.pitch = 1.0;
 		utterance.volume = 1.0;

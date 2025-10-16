@@ -234,6 +234,10 @@ const MCQFlow: React.FC = () => {
 	if (loading) {
 		return (
 			<div className='mcq-container'>
+				{/* Small Laura Avatar - Top Middle */}
+				<div className='small-avatar-container'>
+					<img src={AVATAR_IMAGE_URL} alt='Laura' className='small-avatar' />
+				</div>
 				<div className='mcq-loader'>
 					<div className='spinner'></div>
 					<p>Loading your assessment...</p>

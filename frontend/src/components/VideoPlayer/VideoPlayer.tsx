@@ -142,16 +142,14 @@ const VideoPlayer: React.FC = () => {
 		}
 
 		// Cancel any ongoing speech
-		window.speechSynthesis.cancel();
+	window.speechSynthesis.cancel();
 
-		setSpeaking(true);
+	setSpeaking(true);
 
-		const messageText =
-			"Now that you're done watching the video, you will be taken for mock MCQ.";
+	const messageText =
+		"Now that you're done watching the video, you will be taken for MCQ.";
 
-		const utterance = new SpeechSynthesisUtterance(messageText);
-
-		// Configure voice settings
+	const utterance = new SpeechSynthesisUtterance(messageText);		// Configure voice settings
 		utterance.rate = 0.9;
 		utterance.pitch = 1.0;
 		utterance.volume = 1.0;
@@ -234,12 +232,12 @@ const VideoPlayer: React.FC = () => {
 				)}
 			</div>
 
-		<div className='video-wrapper'>
-			<div className='video-header'>
-				<h1>{videoTitle}</h1>
-			</div>
+			<div className='video-wrapper'>
+				<div className='video-header'>
+					<h1>{videoTitle}</h1>
+				</div>
 
-			<div className='video-player-card'>
+				<div className='video-player-card'>
 					{/* HTML5 Video Player */}
 					<div className='video-embed'>
 						<video

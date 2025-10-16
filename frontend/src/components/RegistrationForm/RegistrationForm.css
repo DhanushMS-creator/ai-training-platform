@@ -1,0 +1,153 @@
+/**
+ * Registration Container
+ *
+ * @format
+ */
+
+.registration-container {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 40px 20px;
+}
+
+/* Registration Card */
+.registration-card {
+	background: white;
+	border-radius: 24px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	padding: 50px;
+	max-width: 480px;
+	width: 100%;
+	animation: slideUp 0.5s ease-out;
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.registration-card h1 {
+	font-size: 2.2rem;
+	color: #2d3748;
+	margin-bottom: 10px;
+	text-align: center;
+	font-weight: 700;
+}
+
+.subtitle {
+	text-align: center;
+	color: #718096;
+	font-size: 1.1rem;
+	margin-bottom: 35px;
+	font-weight: 400;
+}
+
+/* Form Styling */
+.registration-form {
+	display: flex;
+	flex-direction: column;
+	gap: 25px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+}
+
+.form-group label {
+	font-size: 1rem;
+	font-weight: 600;
+	color: #2d3748;
+	margin-bottom: 10px;
+	display: flex;
+	align-items: center;
+}
+
+.form-group input {
+	width: 100%;
+	padding: 16px 20px;
+	font-size: 1rem;
+	border: 2px solid #e2e8f0;
+	border-radius: 12px;
+	transition: all 0.3s ease;
+	background: #f7fafc;
+}
+
+.form-group input:focus {
+	outline: none;
+	border-color: #667eea;
+	background: white;
+	box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input::placeholder {
+	color: #a0aec0;
+}
+
+/* Submit Button */
+.submit-button {
+	padding: 18px 30px;
+	font-size: 1.1rem;
+	font-weight: 600;
+	color: white;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border: none;
+	border-radius: 12px;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	margin-top: 10px;
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.submit-button:hover:not(:disabled) {
+	transform: translateY(-2px);
+	box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.submit-button:active:not(:disabled) {
+	transform: translateY(0);
+}
+
+.submit-button:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+/* Error Message */
+.error-message {
+	background: #fed7d7;
+	color: #c53030;
+	padding: 15px 20px;
+	border-radius: 12px;
+	font-size: 0.95rem;
+	margin-bottom: 20px;
+	border-left: 4px solid #f56565;
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+	.registration-card {
+		padding: 35px 25px;
+	}
+
+	.registration-card h1 {
+		font-size: 1.8rem;
+	}
+
+	.subtitle {
+		font-size: 1rem;
+	}
+
+	.form-group input {
+		padding: 14px 18px;
+	}
+}

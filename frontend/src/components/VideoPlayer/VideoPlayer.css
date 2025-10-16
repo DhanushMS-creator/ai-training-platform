@@ -1,0 +1,304 @@
+/** @format */
+
+.video-container {
+	min-height: 100vh;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	padding: 40px 20px;
+}
+
+.video-wrapper {
+	max-width: 1200px;
+	margin: 0 auto;
+}
+
+.video-header {
+	text-align: center;
+	color: white;
+	margin-bottom: 30px;
+}
+
+.video-header h1 {
+	font-size: 36px;
+	margin-bottom: 20px;
+	font-weight: 700;
+}
+
+.progress-indicator {
+	display: flex;
+	justify-content: center;
+	gap: 15px;
+	flex-wrap: wrap;
+}
+
+.progress-indicator .step {
+	padding: 8px 16px;
+	background: rgba(255, 255, 255, 0.2);
+	border-radius: 20px;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.progress-indicator .step.completed {
+	background: rgba(40, 167, 69, 0.8);
+}
+
+.progress-indicator .step.active {
+	background: white;
+	color: #667eea;
+	font-weight: 700;
+}
+
+.video-player-card {
+	background: white;
+	border-radius: 16px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+	animation: fadeInUp 0.6s ease;
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(30px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.video-embed {
+	position: relative;
+	width: 100%;
+	padding-bottom: 56.25%; /* 16:9 aspect ratio */
+	background: #000;
+}
+
+.video-embed iframe,
+.video-embed #youtube-player {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.video-instructions {
+	padding: 25px;
+	background: #f8f9fa;
+	border-top: 3px solid #667eea;
+}
+
+.instruction-box {
+	display: flex;
+	align-items: center;
+	gap: 15px;
+}
+
+.instruction-box .icon {
+	font-size: 32px;
+}
+
+.instruction-box p {
+	margin: 0;
+	color: #495057;
+	font-size: 16px;
+	font-weight: 500;
+}
+
+.avatar-navigation {
+	padding: 30px;
+	background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+	border-top: 1px solid #dee2e6;
+	animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+	from {
+		opacity: 0;
+		max-height: 0;
+	}
+	to {
+		opacity: 1;
+		max-height: 500px;
+	}
+}
+
+.avatar-message-box {
+	display: flex;
+	gap: 20px;
+	margin-bottom: 20px;
+	align-items: flex-start;
+}
+
+.avatar-icon-small {
+	width: 60px;
+	height: 60px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 30px;
+	flex-shrink: 0;
+	box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.message-content h3 {
+	color: #333;
+	margin: 0 0 10px 0;
+	font-size: 20px;
+}
+
+.message-content p {
+	color: #6c757d;
+	margin: 0;
+	line-height: 1.6;
+}
+
+.continue-to-mcq-button {
+	width: 100%;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: white;
+	padding: 16px 32px;
+	border: none;
+	border-radius: 12px;
+	font-size: 18px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.continue-to-mcq-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.manual-continue {
+	text-align: center;
+	margin-top: 25px;
+}
+
+.skip-button {
+	background: rgba(255, 255, 255, 0.9);
+	color: #667eea;
+	padding: 12px 30px;
+	border: 2px solid white;
+	border-radius: 8px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+}
+
+.skip-button:hover {
+	background: white;
+	transform: translateY(-2px);
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.skip-note {
+	color: rgba(255, 255, 255, 0.9);
+	font-size: 14px;
+	margin-top: 10px;
+	font-style: italic;
+}
+
+@media (max-width: 768px) {
+	.video-header h1 {
+		font-size: 24px;
+	}
+
+	.progress-indicator .step {
+		font-size: 12px;
+		padding: 6px 12px;
+	}
+
+	.avatar-message-box {
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+	}
+
+	.video-instructions,
+	.avatar-navigation {
+		padding: 20px;
+	}
+}
+
+.video-player .controls button {
+	background: none;
+	border: none;
+	color: white;
+	cursor: pointer;
+}
+
+.video-player .controls button:hover {
+	color: #ffcc00;
+}
+
+/* Post-Video Message Styles */
+.post-video-message {
+	padding: 30px;
+	background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+	border-top: 1px solid #dee2e6;
+	animation: slideDown 0.5s ease;
+}
+
+.avatar-icon-small img {
+	width: 60px;
+	height: 60px;
+	border-radius: 50%;
+	box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.avatar-icon-small img.speaking {
+	animation: avatarPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+	}
+	50% {
+		transform: scale(1.05);
+		box-shadow: 0 8px 20px rgba(102, 126, 234, 0.5);
+	}
+}
+
+.speaking-indicator-inline {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin-top: 10px;
+	padding: 8px 15px;
+	background: #e7f3ff;
+	border-radius: 20px;
+	font-size: 14px;
+	color: #667eea;
+	font-weight: 600;
+}
+
+.auto-navigate-info {
+	text-align: center;
+	margin-top: 20px;
+	padding: 20px;
+	background: #e7f3ff;
+	border-radius: 12px;
+	border: 2px dashed #667eea;
+}
+
+.auto-navigate-info p {
+	margin: 5px 0;
+	color: #555;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.auto-navigate-info .small-text {
+	font-size: 14px;
+	font-weight: 400;
+	color: #777;
+}

@@ -37,12 +37,12 @@ def initialize_global_question_pool():
     # Extract text from PDF
     pdf_content = extract_text_from_pdf(pdf_path)
     
-    # Generate 20 questions using Gemini (generic, not personalized)
+    # Generate 10 questions using Gemini (reduced for faster generation and lower memory)
     questions = generate_mcq_questions(
         job_title="General",  # Generic questions for all users
         industry="Business",
         pdf_content=pdf_content,
-        num_questions=20
+        num_questions=10  # Reduced from 20 to 10 for Railway deployment
     )
     
     # Save to GlobalMCQQuestion table
@@ -170,7 +170,7 @@ def auto_generate_questions(request, session_id):
         
         # Initialize global question pool if it doesn't exist
         global_question_count = GlobalMCQQuestion.objects.filter(is_active=True).count()
-        if global_question_count < 20:
+        if global_question_count < 10:  # Changed from 20 to 10
             print("Initializing global question pool...")
             initialize_global_question_pool()
         

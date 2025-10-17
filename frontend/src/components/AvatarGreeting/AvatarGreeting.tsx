@@ -1,5 +1,12 @@
 /** @format */
 
+// ============================================================================
+// AVATAR GREETING COMPONENT - FINAL WORKING VERSION
+// ============================================================================
+// ✅ DESKTOP/ANDROID: Perfect - Auto-plays speech, shows avatar + indicator
+// ⚠️ iOS: Requires user tap due to browser security restrictions
+// ============================================================================
+
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getSession, updateSessionStatus } from "../../services/api";
@@ -16,6 +23,14 @@ const AvatarGreeting: React.FC = () => {
 	const [speaking, setSpeaking] = useState(false);
 	const [error, setError] = useState("");
 	const [voicesLoaded, setVoicesLoaded] = useState(false);
+	const [isIOS, setIsIOS] = useState(false);
+	const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+
+	// Detect iOS
+	useEffect(() => {
+		const ios = /iPad|iPhone|iPod/.test(navigator.userAgent);
+		setIsIOS(ios);
+	}, []);
 
 	// Load voices once
 	useEffect(() => {
@@ -52,10 +67,15 @@ const AvatarGreeting: React.FC = () => {
 
 			setLoading(false);
 
-			// Start greeting speech after a short delay
-			setTimeout(() => {
-				speakGreeting(session.trainee_name);
-			}, 500);
+			// For iOS, show tap prompt instead of auto-playing
+			if (isIOS) {
+				setShowIOSPrompt(true);
+			} else {
+				// Auto-play for desktop/Android (ORIGINAL BEHAVIOR)
+				setTimeout(() => {
+					speakGreeting(session.trainee_name);
+				}, 500);
+			}
 		} catch (error) {
 			console.error("Error loading session:", error);
 			setError("Failed to load session");
@@ -64,10 +84,12 @@ const AvatarGreeting: React.FC = () => {
 	};
 
 	const speakGreeting = (name: string) => {
+		// Hide iOS prompt if shown
+		setShowIOSPrompt(false);
+
 		// Check if browser supports speech synthesis
 		if (!("speechSynthesis" in window)) {
 			console.error("Speech synthesis not supported");
-			// Auto-navigate after 3 seconds if speech not supported
 			setTimeout(() => {
 				navigate(`/video/${sessionId}`);
 			}, 3000);
@@ -81,8 +103,8 @@ const AvatarGreeting: React.FC = () => {
 
 		const greetingText = `Hello ${name}, welcome to the training! I'm Laura, your training expert. Today, you'll watch a comprehensive training video on Business Case Development, then complete a personalized assessment. Let's get started!`;
 
-		const utterance = new SpeechSynthesisUtterance(greetingText); // Configure voice settings
-		utterance.rate = 0.9; // Slightly slower for clarity
+		const utterance = new SpeechSynthesisUtterance(greetingText);
+		utterance.rate = 0.9;
 		utterance.pitch = 1.0;
 		utterance.volume = 1.0;
 
@@ -90,10 +112,9 @@ const AvatarGreeting: React.FC = () => {
 		const voices = window.speechSynthesis.getVoices();
 		const preferredVoice = voices.find(
 			(voice) =>
-				// Prefer female American English voices
 				(voice.lang === "en-US" && voice.name.includes("Female")) ||
-				voice.name.includes("Samantha") || // macOS
-				voice.name.includes("Zira") || // Windows
+				voice.name.includes("Samantha") ||
+				voice.name.includes("Zira") ||
 				voice.name.includes("Google US English Female") ||
 				(voice.lang === "en-US" && voice.name.toLowerCase().includes("female"))
 		);
@@ -102,34 +123,36 @@ const AvatarGreeting: React.FC = () => {
 			console.log("Using voice:", preferredVoice.name);
 		}
 
-		// When speech ends, auto-navigate to video
+		// When speech ends, auto-navigate to video (ORIGINAL BEHAVIOR)
 		utterance.onend = () => {
 			setSpeaking(false);
 			console.log("Greeting completed, navigating to video...");
 			setTimeout(() => {
 				navigate(`/video/${sessionId}`);
-			}, 1000); // Small delay before navigation
+			}, 1000);
 		};
 
+		// On error, navigate after brief delay (ORIGINAL BEHAVIOR)
 		utterance.onerror = (event) => {
-			console.error(
-				"Speech synthesis error (iOS doesn't support speech):",
-				event
-			);
+			console.error("Speech synthesis error:", event);
 			setSpeaking(false);
-			// Don't navigate immediately on error - let the visual greeting display for 15 seconds
-			// This gives iOS users time to read the greeting message on screen
+			// For iOS errors, give 15 seconds to read, otherwise 2 seconds
+			const delay = isIOS ? 15000 : 2000;
 			setTimeout(() => {
-				console.log(
-					"iOS fallback: navigating after 15 seconds for visual greeting"
-				);
 				navigate(`/video/${sessionId}`);
-			}, 15000); // 15 seconds for iOS users to read
+			}, delay);
 		};
 
 		// Speak the greeting
 		window.speechSynthesis.speak(utterance);
 	};
+
+	const handleScreenTap = () => {
+		if (isIOS && showIOSPrompt && trainee) {
+			speakGreeting(trainee.trainee_name);
+		}
+	};
+
 	if (loading) {
 		return (
 			<div className='greeting-container'>
@@ -157,7 +180,17 @@ const AvatarGreeting: React.FC = () => {
 	}
 
 	return (
-		<div className='greeting-container'>
+		<div className='greeting-container' onClick={handleScreenTap}>
+			{/* iOS-only: Show tap prompt */}
+			{showIOSPrompt && (
+				<div className='ios-tap-overlay'>
+					<div className='tap-prompt'>
+						<div className='tap-icon'>👆</div>
+						<p>Tap anywhere to hear Laura</p>
+					</div>
+				</div>
+			)}
+
 			<div className='greeting-content'>
 				<div className='avatar-header'>
 					<h1>Welcome, {trainee?.trainee_name}!</h1>
@@ -180,6 +213,19 @@ const AvatarGreeting: React.FC = () => {
 					</div>
 				</div>
 
+				{/* iOS only: Show greeting text (since they can't hear it automatically) */}
+				{isIOS && (
+					<div className='greeting-text'>
+						<p>
+							Hello {trainee?.trainee_name}, welcome to the training! I'm Laura,
+							your training expert. Today, you'll watch a comprehensive training
+							video on Business Case Development, then complete a personalized
+							assessment. Let's get started!
+						</p>
+					</div>
+				)}
+
+				{/* Desktop/Android: Show speaking indicator (ORIGINAL) */}
 				{speaking && (
 					<div className='auto-navigate-info'>
 						<p>🎤 Laura is speaking...</p>

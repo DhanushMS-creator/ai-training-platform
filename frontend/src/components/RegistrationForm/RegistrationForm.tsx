@@ -68,10 +68,10 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({
 				<img src={AVATAR_IMAGE_URL} alt='Laura' className='small-avatar' />
 			</div>
 
-		<div className='registration-card'>
-			<p className='subtitle'>Enter your info to continue</p>
-
-			{error && <div className='error-message'>{error}</div>}				<form className='registration-form' onSubmit={handleSubmit}>
+			<div className='registration-card'>
+				<p className='subtitle'>Enter your info to continue</p>
+				{error && <div className='error-message'>{error}</div>}{" "}
+				<form className='registration-form' onSubmit={handleSubmit}>
 					<div className='form-group'>
 						<label htmlFor='name'>Full Name *</label>
 						<input

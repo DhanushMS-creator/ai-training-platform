@@ -181,16 +181,6 @@ const AvatarGreeting: React.FC = () => {
 
 	return (
 		<div className='greeting-container' onClick={handleScreenTap}>
-			{/* iOS-only: Show tap prompt */}
-			{showIOSPrompt && (
-				<div className='ios-tap-overlay'>
-					<div className='tap-prompt'>
-						<div className='tap-icon'>👆</div>
-						<p>Tap anywhere to hear Laura</p>
-					</div>
-				</div>
-			)}
-
 			<div className='greeting-content'>
 				<div className='avatar-header'>
 					<h1>Welcome, {trainee?.trainee_name}!</h1>
@@ -213,25 +203,23 @@ const AvatarGreeting: React.FC = () => {
 					</div>
 				</div>
 
-				{/* iOS only: Show greeting text (since they can't hear it automatically) */}
-				{isIOS && (
-					<div className='greeting-text'>
-						<p>
-							Hello {trainee?.trainee_name}, welcome to the training! I'm Laura,
-							your training expert. Today, you'll watch a comprehensive training
-							video on Business Case Development, then complete a personalized
-							assessment. Let's get started!
-						</p>
-					</div>
-				)}
-
 				{/* Desktop/Android: Show speaking indicator (ORIGINAL) */}
-				{speaking && (
+				{speaking && !isIOS && (
 					<div className='auto-navigate-info'>
 						<p>🎤 Laura is speaking...</p>
 					</div>
 				)}
 			</div>
+
+			{/* iOS-only: Modern bottom popup for tap prompt */}
+			{showIOSPrompt && (
+				<div className='ios-bottom-popup'>
+					<div className='popup-content'>
+						<div className='tap-icon'>👆</div>
+						<p>Tap anywhere to hear Laura</p>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };

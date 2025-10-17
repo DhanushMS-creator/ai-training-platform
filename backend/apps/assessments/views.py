@@ -188,11 +188,11 @@ def auto_generate_questions(request, session_id):
         # Assign questions to this session
         questions_data = []
         for order, question in enumerate(selected_questions, start=1):
-            # Create session-question link
-            SessionQuestion.objects.create(
+            # Create session-question link (use get_or_create to prevent duplicates)
+            SessionQuestion.objects.get_or_create(
                 session=session,
                 question=question,
-                order=order
+                defaults={'order': order}
             )
             
             # Prepare response data (without correct answer)

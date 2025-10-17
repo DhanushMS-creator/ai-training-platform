@@ -16,6 +16,7 @@ const VideoPlayer: React.FC = () => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [voicesLoaded, setVoicesLoaded] = useState(false);
 	const [preVideoSpeechDone, setPreVideoSpeechDone] = useState(false);
+	const [videoPlaying, setVideoPlaying] = useState(false);
 
 	// Local video file
 	const videoSrc = "/training-video.mp4";
@@ -74,17 +75,34 @@ const VideoPlayer: React.FC = () => {
 		utterance.pitch = 1.0;
 		utterance.volume = 1.0;
 
+		// Consistent voice selection across all platforms
 		const voices = window.speechSynthesis.getVoices();
-		const preferredVoice = voices.find(
+
+		// Try Google voices first (available on Chrome/Android/Desktop)
+		let selectedVoice = voices.find(
 			(voice) =>
-				(voice.lang === "en-US" && voice.name.includes("Female")) ||
-				voice.name.includes("Samantha") ||
-				voice.name.includes("Zira") ||
-				voice.name.includes("Google US English Female") ||
-				(voice.lang === "en-US" && voice.name.toLowerCase().includes("female"))
+				voice.name === "Google US English" ||
+				(voice.name.includes("Google") && voice.lang === "en-US")
 		);
-		if (preferredVoice) {
-			utterance.voice = preferredVoice;
+
+		// Fallback to platform-specific female voices
+		if (!selectedVoice) {
+			selectedVoice = voices.find(
+				(voice) =>
+					voice.name.includes("Samantha") || // macOS/iOS
+					voice.name.includes("Zira") || // Windows
+					(voice.lang === "en-US" &&
+						voice.name.toLowerCase().includes("female"))
+			);
+		}
+
+		// Final fallback: any en-US voice
+		if (!selectedVoice) {
+			selectedVoice = voices.find((voice) => voice.lang === "en-US");
+		}
+
+		if (selectedVoice) {
+			utterance.voice = selectedVoice;
 		}
 
 		utterance.onend = () => {
@@ -112,8 +130,14 @@ const VideoPlayer: React.FC = () => {
 		}
 	};
 
+	const handleVideoPlay = () => {
+		// Hide Laura when video starts playing
+		setVideoPlaying(true);
+	};
+
 	const handleVideoEnd = async () => {
 		setVideoCompleted(true);
+		setVideoPlaying(false); // Show Laura again when video ends
 
 		// Update backend that video is completed
 		if (sessionId) {
@@ -156,21 +180,35 @@ const VideoPlayer: React.FC = () => {
 
 		// Wait for voices to load if needed
 		const speakWhenReady = () => {
-			// Try to use a female American accent voice
+			// Consistent voice selection across all platforms
 			const voices = window.speechSynthesis.getVoices();
-			const preferredVoice = voices.find(
+
+			// Try Google voices first (available on Chrome/Android/Desktop)
+			let selectedVoice = voices.find(
 				(voice) =>
-					// Prefer female American English voices
-					(voice.lang === "en-US" && voice.name.includes("Female")) ||
-					voice.name.includes("Samantha") || // macOS
-					voice.name.includes("Zira") || // Windows
-					voice.name.includes("Google US English Female") ||
-					(voice.lang === "en-US" &&
-						voice.name.toLowerCase().includes("female"))
+					voice.name === "Google US English" ||
+					(voice.name.includes("Google") && voice.lang === "en-US")
 			);
-			if (preferredVoice) {
-				utterance.voice = preferredVoice;
-				console.log("Using voice:", preferredVoice.name);
+
+			// Fallback to platform-specific female voices
+			if (!selectedVoice) {
+				selectedVoice = voices.find(
+					(voice) =>
+						voice.name.includes("Samantha") || // macOS/iOS
+						voice.name.includes("Zira") || // Windows
+						(voice.lang === "en-US" &&
+							voice.name.toLowerCase().includes("female"))
+				);
+			}
+
+			// Final fallback: any en-US voice
+			if (!selectedVoice) {
+				selectedVoice = voices.find((voice) => voice.lang === "en-US");
+			}
+
+			if (selectedVoice) {
+				utterance.voice = selectedVoice;
+				console.log("✅ Using voice:", selectedVoice.name);
 			}
 
 			// When speech ends, auto-navigate to MCQ
@@ -217,20 +255,22 @@ const VideoPlayer: React.FC = () => {
 
 	return (
 		<div className='video-container'>
-			{/* Small Laura Avatar - Top Middle */}
-			<div className='small-avatar-container'>
-				<img
-					src={AVATAR_IMAGE_URL}
-					alt='Laura'
-					className={`small-avatar ${speaking ? "speaking" : ""}`}
-				/>
-				{speaking && (
-					<div className='speaking-indicator-small'>
-						<div className='pulse'></div>
-						<span>Laura is speaking...</span>
-					</div>
-				)}
-			</div>
+			{/* Small Laura Avatar - Top Middle (Hidden when video is playing) */}
+			{!videoPlaying && (
+				<div className='small-avatar-container'>
+					<img
+						src={AVATAR_IMAGE_URL}
+						alt='Laura'
+						className={`small-avatar ${speaking ? "speaking" : ""}`}
+					/>
+					{speaking && (
+						<div className='speaking-indicator-small'>
+							<div className='pulse'></div>
+							<span>Laura is speaking...</span>
+						</div>
+					)}
+				</div>
+			)}
 
 			<div className='video-wrapper'>
 				<div className='video-header'>
@@ -245,6 +285,7 @@ const VideoPlayer: React.FC = () => {
 							src={videoSrc}
 							controls
 							controlsList='nodownload'
+							onPlay={handleVideoPlay}
 							onEnded={handleVideoEnd}
 							style={{ width: "100%", height: "auto" }}>
 							Your browser does not support the video tag.

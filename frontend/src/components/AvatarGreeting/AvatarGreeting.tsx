@@ -108,19 +108,43 @@ const AvatarGreeting: React.FC = () => {
 		utterance.pitch = 1.0;
 		utterance.volume = 1.0;
 
-		// Try to use a female American accent voice
+		// Consistent voice selection across all platforms
+		// Priority: Google voices (most consistent) > Native female voices
 		const voices = window.speechSynthesis.getVoices();
-		const preferredVoice = voices.find(
+
+		// Try Google voices first (available on Chrome/Android/Desktop)
+		let selectedVoice = voices.find(
 			(voice) =>
-				(voice.lang === "en-US" && voice.name.includes("Female")) ||
-				voice.name.includes("Samantha") ||
-				voice.name.includes("Zira") ||
-				voice.name.includes("Google US English Female") ||
-				(voice.lang === "en-US" && voice.name.toLowerCase().includes("female"))
+				voice.name === "Google US English" ||
+				(voice.name.includes("Google") && voice.lang === "en-US")
 		);
-		if (preferredVoice) {
-			utterance.voice = preferredVoice;
-			console.log("Using voice:", preferredVoice.name);
+
+		// Fallback to platform-specific female voices
+		if (!selectedVoice) {
+			selectedVoice = voices.find(
+				(voice) =>
+					voice.name.includes("Samantha") || // macOS/iOS
+					voice.name.includes("Zira") || // Windows
+					(voice.lang === "en-US" &&
+						voice.name.toLowerCase().includes("female"))
+			);
+		}
+
+		// Final fallback: any en-US voice
+		if (!selectedVoice) {
+			selectedVoice = voices.find((voice) => voice.lang === "en-US");
+		}
+
+		if (selectedVoice) {
+			utterance.voice = selectedVoice;
+			console.log(
+				"✅ Using voice:",
+				selectedVoice.name,
+				"| Platform:",
+				navigator.platform
+			);
+		} else {
+			console.log("⚠️ Using default voice | Platform:", navigator.platform);
 		}
 
 		// When speech ends, auto-navigate to video (ORIGINAL BEHAVIOR)

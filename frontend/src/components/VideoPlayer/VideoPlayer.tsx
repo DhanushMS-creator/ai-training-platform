@@ -38,20 +38,8 @@ const VideoPlayer: React.FC = () => {
 			}
 		}
 
-		// Navigate directly to MCQ
-		navigateToMCQ();
-	};
-
-	const navigateToMCQ = async () => {
-		if (sessionId) {
-			try {
-				await updateSessionStatus(parseInt(sessionId), "mcq");
-				navigate(`/mcq/${sessionId}`);
-			} catch (error) {
-				console.error("Error navigating to MCQ:", error);
-				navigate(`/mcq/${sessionId}`);
-			}
-		}
+		// Navigate to post-video greeting (Laura introduction to MCQ)
+		navigate(`/post-video/${sessionId}`);
 	};
 
 	return (

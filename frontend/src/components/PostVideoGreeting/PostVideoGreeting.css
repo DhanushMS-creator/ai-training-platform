@@ -1,0 +1,361 @@
+/** @format */
+
+/* ============================================================================
+   POST-VIDEO GREETING STYLES - Matches AvatarGreeting aesthetics
+   ============================================================================ */
+
+.post-video-greeting-container {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	padding: 20px;
+	position: relative;
+	overflow: hidden;
+}
+
+/* Animated background particles */
+.post-video-greeting-container::before {
+	content: "";
+	position: absolute;
+	width: 200%;
+	height: 200%;
+	top: -50%;
+	left: -50%;
+	z-index: 0;
+	background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></svg>')
+		repeat;
+	animation: float 20s linear infinite;
+}
+
+@keyframes float {
+	0% {
+		transform: translate(0, 0);
+	}
+	100% {
+		transform: translate(50px, 50px);
+	}
+}
+
+.greeting-content {
+	position: relative;
+	z-index: 1;
+	text-align: center;
+	max-width: 800px;
+	width: 100%;
+}
+
+/* ============================================================================
+   AVATAR SECTION
+   ============================================================================ */
+
+.avatar-section {
+	margin-bottom: 30px;
+}
+
+.avatar-image-container {
+	position: relative;
+	display: inline-block;
+	margin-bottom: 20px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.avatar-image {
+	width: 180px;
+	height: 180px;
+	border-radius: 50%;
+	object-fit: cover;
+	box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+	transition: all 0.3s ease;
+}
+
+.avatar-image.speaking {
+	animation: avatarPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes avatarPulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+	}
+	50% {
+		transform: scale(1.05);
+		box-shadow: 0 15px 50px rgba(102, 126, 234, 0.5);
+	}
+}
+
+/* ============================================================================
+   SPEAKING INDICATOR - Blue Wave Bars (matches AvatarGreeting)
+   ============================================================================ */
+
+.speaking-indicator {
+	position: absolute;
+	bottom: -10px;
+	display: flex;
+	gap: 5px;
+	background: white;
+	padding: 10px 15px;
+	border-radius: 20px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.wave {
+	width: 4px;
+	height: 20px;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	border-radius: 2px;
+	animation: waveAnimation 1s ease-in-out infinite;
+}
+
+.wave:nth-child(2) {
+	animation-delay: 0.1s;
+}
+
+.wave:nth-child(3) {
+	animation-delay: 0.2s;
+}
+
+@keyframes waveAnimation {
+	0%,
+	100% {
+		height: 10px;
+	}
+	50% {
+		height: 25px;
+	}
+}
+
+/* ============================================================================
+   IOS TAP PROMPT
+   ============================================================================ */
+
+.ios-tap-prompt {
+	background: rgba(255, 255, 255, 0.95);
+	padding: 30px 40px;
+	border-radius: 20px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	animation: gentle-bounce 2s ease-in-out infinite;
+	max-width: 400px;
+	margin: 30px auto;
+}
+
+@keyframes gentle-bounce {
+	0%,
+	100% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-10px);
+	}
+}
+
+.tap-icon {
+	font-size: 48px;
+	margin-bottom: 15px;
+	animation: tap-pulse 1s ease-in-out infinite;
+}
+
+@keyframes tap-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.2);
+	}
+}
+
+.tap-text {
+	font-size: 20px;
+	font-weight: 600;
+	color: #667eea;
+	margin: 0;
+}
+
+/* ============================================================================
+   TRAINEE INFO
+   ============================================================================ */
+
+.trainee-info {
+	background: rgba(255, 255, 255, 0.95);
+	padding: 30px 40px;
+	border-radius: 20px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+	max-width: 600px;
+	margin: 0 auto;
+}
+
+.trainee-name {
+	font-size: 32px;
+	font-weight: 700;
+	color: #667eea;
+	margin: 0 0 10px 0;
+	text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.greeting-subtitle {
+	font-size: 18px;
+	color: #666;
+	margin: 0;
+	font-weight: 500;
+}
+
+/* ============================================================================
+   MESSAGE SECTION (iOS only)
+   ============================================================================ */
+
+.message-section {
+	background: rgba(255, 255, 255, 0.95);
+	padding: 25px 35px;
+	border-radius: 15px;
+	box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+	max-width: 600px;
+	margin: 20px auto 0;
+}
+
+.message-text {
+	font-size: 16px;
+	line-height: 1.6;
+	color: #444;
+	margin: 0;
+}
+
+/* ============================================================================
+   LOADING & ERROR STATES
+   ============================================================================ */
+
+.loading-spinner,
+.error-message {
+	text-align: center;
+	background: rgba(255, 255, 255, 0.95);
+	padding: 40px;
+	border-radius: 20px;
+	box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.spinner {
+	width: 50px;
+	height: 50px;
+	border: 4px solid rgba(102, 126, 234, 0.2);
+	border-top-color: #667eea;
+	border-radius: 50%;
+	animation: spin 1s linear infinite;
+	margin: 0 auto 20px;
+}
+
+@keyframes spin {
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
+}
+
+.loading-spinner p,
+.error-message p {
+	font-size: 18px;
+	color: #666;
+	margin: 0;
+}
+
+.continue-button {
+	margin-top: 20px;
+	padding: 12px 30px;
+	background: linear-gradient(135deg, #667eea, #764ba2);
+	color: white;
+	border: none;
+	border-radius: 25px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	transition: all 0.3s ease;
+	box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+}
+
+.continue-button:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+}
+
+/* ============================================================================
+   RESPONSIVE DESIGN
+   ============================================================================ */
+
+@media (max-width: 768px) {
+	.avatar-image {
+		width: 150px;
+		height: 150px;
+	}
+
+	.trainee-name {
+		font-size: 26px;
+	}
+
+	.greeting-subtitle {
+		font-size: 16px;
+	}
+
+	.ios-tap-prompt {
+		padding: 25px 30px;
+	}
+
+	.tap-text {
+		font-size: 18px;
+	}
+
+	.trainee-info {
+		padding: 25px 30px;
+	}
+
+	.message-section {
+		padding: 20px 25px;
+	}
+
+	.message-text {
+		font-size: 15px;
+	}
+}
+
+@media (max-width: 480px) {
+	.post-video-greeting-container {
+		padding: 15px;
+	}
+
+	.avatar-image {
+		width: 120px;
+		height: 120px;
+	}
+
+	.trainee-name {
+		font-size: 22px;
+	}
+
+	.greeting-subtitle {
+		font-size: 14px;
+	}
+
+	.ios-tap-prompt {
+		padding: 20px 25px;
+	}
+
+	.tap-icon {
+		font-size: 36px;
+	}
+
+	.tap-text {
+		font-size: 16px;
+	}
+
+	.trainee-info {
+		padding: 20px 25px;
+	}
+
+	.message-text {
+		font-size: 14px;
+	}
+}

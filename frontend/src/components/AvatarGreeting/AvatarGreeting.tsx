@@ -112,18 +112,24 @@ const AvatarGreeting: React.FC = () => {
 		};
 
 		utterance.onerror = (event) => {
-			console.error("Speech synthesis error:", event);
+			console.error(
+				"Speech synthesis error (iOS doesn't support speech):",
+				event
+			);
 			setSpeaking(false);
-			// Navigate anyway if speech fails
+			// Don't navigate immediately on error - let the visual greeting display for 15 seconds
+			// This gives iOS users time to read the greeting message on screen
 			setTimeout(() => {
+				console.log(
+					"iOS fallback: navigating after 15 seconds for visual greeting"
+				);
 				navigate(`/video/${sessionId}`);
-			}, 2000);
+			}, 15000); // 15 seconds for iOS users to read
 		};
 
 		// Speak the greeting
 		window.speechSynthesis.speak(utterance);
 	};
-
 	if (loading) {
 		return (
 			<div className='greeting-container'>
